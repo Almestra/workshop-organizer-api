@@ -1,0 +1,35 @@
+# Keep the build context small and free of local artefacts.
+# Patterns are relative to the context root (unlike .gitignore):
+# use **/ to match at any depth.
+
+# Build outputs and caches: recreated inside the image
+# (.gradle is the local cache; gradle/ holds the wrapper and must stay)
+build
+.gradle
+src/main/java-generated
+**/.openapi-generator
+test-results
+
+# Secrets: environment files must never end up in an image
+**/.env*
+
+# VCS, editors and OS files
+.git
+.idea
+.vscode
+*.iml
+bin
+out
+**/.DS_Store
+**/Thumbs.db
+
+# Docker and deployment files: not needed to build the application
+Dockerfile
+docker-compose.yml
+.dockerignore
+k8s
+values.tpl.yaml
+db
+
+# Documentation
+*.md

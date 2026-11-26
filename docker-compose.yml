@@ -1,17 +1,35 @@
+# Development defaults below can be overridden in a .env file (see .env.example).
+
 services:
 
   app:
-    image: workshop-organizer
+    build: .
+    image: workshop-organizer:local
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/workshopsdb"
-      SPRING_DATASOURCE_USERNAME: workshops_user
-      SPRING_DATASOURCE_PASSWORD: oc2024
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/${POSTGRES_DB:-workshopsdb}"
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-workshops_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-oc2024}
+    depends_on:
+      db:
+        condition: service_healthy
 
   db:
-    image: postgres:13
+    image: postgres:13.23-bookworm
+    # No published port: only the app reaches the database, on the Compose network
     environment:
-      POSTGRES_USER: workshops_user
-      POSTGRES_PASSWORD: oc2024
-      POSTGRES_DB: workshopsdb
+      POSTGRES_DB: ${POSTGRES_DB:-workshopsdb}
+      POSTGRES_USER: ${POSTGRES_USER:-workshops_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-oc2024}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  db-data:
